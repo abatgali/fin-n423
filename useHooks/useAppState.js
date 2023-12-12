@@ -3,7 +3,11 @@ import React from "react";
 const AppContext = React.createContext();
 
 export function AppProvider({ children }) {
-  const [appState, setAppState] = React.useState({ user: "Anant", favCats: [], catImages: [] });
+  const [appState, setAppState] = React.useState({
+    user: "Anant",
+    gasPrices: [],
+    trackedGasPrices: [],
+  });
 
   function updateAppState(newStateValues) {
     setAppState({
@@ -12,16 +16,23 @@ export function AppProvider({ children }) {
     });
   }
 
+  function removeTrackedGasPrice(gasPrice) {
+    const newTrackedGasPrices = appState.trackedGasPrices.filter(
+      (g) => g.name !== gasPrice.name
+    );
+
+    updateAppState({ trackedGasPrices: newTrackedGasPrices });
+  }
+
   const providerValue = {
     ...appState,
     lastLoad: Date.now(),
     updateAppState,
+    removeTrackedGasPrice,
   };
 
   return (
-    <AppContext.Provider value={ providerValue }>
-      {children}
-    </AppContext.Provider>
+    <AppContext.Provider value={providerValue}>{children}</AppContext.Provider>
   );
 }
 

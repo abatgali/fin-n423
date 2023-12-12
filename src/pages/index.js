@@ -2,55 +2,70 @@ import Image from "next/image";
 import { Inter } from "next/font/google";
 import { Grid, Header, Button, Popup } from "semantic-ui-react";
 import { useState } from "react";
-import CatImage from "../../components/CatImage";
 import useAppState from "../../useHooks/useAppState";
+import GasCard from "../../components/GasCard";
+import Banner from "../../components/banner";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
-  const [catImages, setCatImages] = useState([]); // [] is the initial value
   const appState = useAppState();
   console.log(appState);
 
+  function getGasPrices() {
+    fetch("https://api.collectapi.com/gasPrice/allUsaPrice", {
+      method: "GET",
+      headers: {
+        "content-type": "application/json",
+        authorization: "apikey 1Qvb8PnIy0RIhYOqVh4wzC:0tcVUwNjyHUBI3lACZ7pQ4",
+      },
+    })
+      .then((response) => response.json())
+      .then((r) => appState.updateAppState({ gasPrices: r.result }))
+      .catch((err) => console.log("Error:", err));
 
-
-  function getCatImages() {
-    fetch(
-      "https://api.thedogapi.com/v1/images/search?mimee_types=jpg,png&limit=10&format=json&order=RANDOM&size=small&has_breeds=true"
-    )
-      .then((r) => r.json())
-      .then((r) => appState.updateAppState({catImages: r }))
-      .catch((e) => console.warn(e));
+    console.log(appState.gasPrices);
   }
 
-
-  function saveCatImage(selectedCat) {
+  function TrackGasPrice(selectedState) {
     appState.updateAppState({
-      favCats: appState.favCats.concat(selectedCat),
+      trackedGasPrices: appState.trackedGasPrices.concat(selectedState),
     });
   }
+
   return (
     <main
-      className={`flex min-h-screen flex-col items-center justify-between py-24 px-5 ${inter.className}`}
+      className={`flex min-h-screen flex-col items-center  ${inter.className}`}
     >
+      <Banner
+        image="https://images.unsplash.com/photo-1527018601619-a508a2be00cd?q=80&w=2948&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        title="USA Gas Prices"
+        description=""
+      />
+      <h1 className="text-5xl font-bold"></h1>
       <Grid columns={1}>
         <Grid.Column>
-          <Header as="h1">Insta-dogs</Header>
-        </Grid.Column>
-        <Grid.Column>
           <Button
-            onClick={getCatImages}
+            onClick={getGasPrices}
             icon="sync"
             color="blue"
-            content="Reload Dogs"
+            content="Fetch Gas Prices"
           />
         </Grid.Column>
-        <Grid.Row columns={3}>
-          {appState.catImages.map((catImage) => (
-            <CatImage src={catImage.url} key={catImage.id} onClick={()=>saveCatImage(catImage)} id={catImage.id}/>
-          ))}
-        </Grid.Row>
       </Grid>
+      <div className="ui cards p-5 w-fit mx-auto">
+        {appState.gasPrices.map((gasPrice) => (
+          <GasCard
+            key={gasPrice.name}
+            name={gasPrice.name}
+            gasoline={gasPrice.gasoline}
+            midGrade={gasPrice.midGrade}
+            premium={gasPrice.premium}
+            diesel={gasPrice.diesel}
+            onClick={() => TrackGasPrice(gasPrice)}
+          />
+        ))}
+      </div>
     </main>
   );
 }
